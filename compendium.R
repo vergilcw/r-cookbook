@@ -1,3 +1,95 @@
+#Vergil's R Cookbook
+
+#This document contains code, snippets, etc.
+
+
+
+# Files -------------------------------------------------------------------
+
+showPDF <- function(site) {
+  path <- g.fulcrum$fulcrum_pdf[g.fulcrum$site_id == site]
+  print(path)
+  shell.exec(path)
+}
+
+# Strings -----------------------------------------------------------------
+
+propCase <- Vectorize(function(x) { #change ANyThINg to Proper Case
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1, 1)), tolower(substring(s, 2)),
+        sep = "", collapse = " ")
+})
+
+#change multiple . in names to one _ (variable...name to variable_name)
+fixNames <- function(x) {
+  names(x) <- gsub('\\.+','_', tolower(names(x)))
+  #strip trailing . from names
+  names(x) <- gsub('\\.$','',names(x))
+  return(x)}
+
+# ODBC --------------------------------------------------------------------
+
+#download all tables from a database
+e.ODBC <- odbcDriverConnect('DSN=???;database=???;case=nochange')
+e.odbctables<-sqlQuery(e.ODBC4, 'SHOW TABLES FROM ???')
+for (i in 1:nrow(e.odbctables)){
+  e.tablename <- e.odbctables[i,1]
+  e.query <- paste('SELECT * FROM', e.tablename, 'WHERE site_id <> 1')
+  print(paste0('Copying ', e.tablename, '...'))
+  assign(paste0('e.',e.tablename), 
+         sqlQuery(e.ODBC4,e.query))
+}
+odbcCloseAll()
+#keep only scheduled sites
+e.recruits <- subset(e.sites, sistatus1=='Scheduled')
+#convert FACT dates to R
+e.recruits$measure_install_date <- as.Date(e.recruits$measure_install_date, 
+                                           origin='1900-01-01')
+
+
+# Maps and Geocode --------------------------------------------------------
+
+
+#bubble chart map by number of participants in a zipcode
+library(ggmap)
+a.cityfreq <- table(paste(a.sites2013$City, a.sites2013$State, sep=', '),
+                    dnn='cityzip')
+a.cityfreq <- as.data.frame(a.cityfreq)
+a.citylatlon <- cbind(city=a.cityfreq[,1],
+                      freq=a.cityfreq[,2],
+                      geocode(as.character(a.cityfreq[,1]))) #geocode
+
+a.cityfreq <- table(paste(a.sites2013$City, a.sites2013$State, sep=', '),
+                    dnn='cityzip')
+a.cityfreq <- as.data.frame(a.cityfreq)
+a.citylatlon <- cbind(city=a.cityfreq[,1],
+                      freq=a.cityfreq[,2],
+                      geocode(as.character(a.cityfreq[,1]))) #geocode
+
+
+
+# Sampling ----------------------------------------------------------------
+
+#figure out proportions of strata
+c.prop <- table(b.current[,c('Region', 'AC.Units.Category')])/nrow(b.current)
+c.target <- round(c.prop*110) 
+c.target <- melt(c.target)
+#View(arrange(c.target,Region))
+
+
+#order sitespop by strata (and premise, for reproducibility)
+c.sitespop <- arrange(c.custphone,AC.Units.Category,Region,Site.ID)
+set.seed(123) #for reproducibilty
+#from the 'sampling' package (requires df to be sorted by strata)
+c.samp <- strata(c.sitespop, 
+                 c('AC.Units.Category','Region'), 
+                 size=c.target$value*20,
+                 method='srswor')
+c.sample <- getdata(c.sitespop,c.samp)
+count(subset(c.sample,,c(AC.Units.Category,Region))) #looks good
+
+
+
 #see how much memory you are using:
 .ls.objects <- function (pos = 1, pattern, order.by = "Size", decreasing=TRUE, head = TRUE, n = 10) {
   # based on postings by Petr Pikal and David Hinds to the r-help list in 2004
