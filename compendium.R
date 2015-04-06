@@ -26,6 +26,11 @@ fixNames <- function(x) {
   #strip trailing . from names
   names(x) <- gsub('\\.$','',names(x))
   return(x)}
+  
+  #get notifications when code is finished
+library(notifyR); userkey <- 'xxxxx' #look up api key by logging in on pushover.net 
+send_push(userkey,"R code finished")
+
 
 # ODBC --------------------------------------------------------------------
 
