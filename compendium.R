@@ -99,7 +99,7 @@ count(subset(c.sample,,c(AC.Units.Category,Region))) #looks good
 .ls.objects <- function (pos = 1, pattern, order.by = "Size", decreasing=TRUE, head = TRUE, n = 10) {
   # based on postings by Petr Pikal and David Hinds to the r-help list in 2004
   # modified by: Dirk Eddelbuettel 
-  (http://stackoverflow.com/questions/1358003/tricks-to-manage-the-available-memory-in-an-r-session) 
+  # (http://stackoverflow.com/questions/1358003/tricks-to-manage-the-available-memory-in-an-r-session) 
   # I then gave it a few tweaks (show size as megabytes and use defaults that I like)
   # a data frame of the objects and their associated storage needs.
   napply <- function(names, fn) sapply(names, function(x)
